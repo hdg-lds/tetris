@@ -477,12 +477,13 @@
     </div>
   </div>
 
+  <script src="src/tetris-core.js"></script>
   <script>
     (() => {
       "use strict";
 
-      const COLS = 10;
-      const ROWS = 20;
+      const Core = window.TetrisCore;
+      const { COLS, ROWS, emptyBoard, rotateMatrix } = Core;
       const CELL = 30;
       const SHAPES = {
         I: { color: "#59e8e2", cells: [[1, 1, 1, 1]] },
@@ -643,10 +644,6 @@
         else stopMusic();
       }
 
-      function emptyBoard() {
-        return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
-      }
-
       function refillBag() {
         bag = Object.keys(SHAPES);
         for (let i = bag.length - 1; i > 0; i -= 1) {
@@ -666,29 +663,7 @@
       }
 
       function collides(piece, offsetX = 0, offsetY = 0, cells = piece.cells) {
-        for (let row = 0; row < cells.length; row += 1) {
-          for (let col = 0; col < cells[row].length; col += 1) {
-            if (!cells[row][col]) continue;
-            const x = piece.x + col + offsetX;
-            const y = piece.y + row + offsetY;
-            if (x < 0 || x >= COLS || y >= ROWS) return true;
-            if (y >= 0 && board[y][x]) return true;
-          }
-        }
-        return false;
-      }
-
-      function rotateMatrix(matrix, direction) {
-        const height = matrix.length;
-        const width = matrix[0].length;
-        const rotated = Array.from({ length: width }, () => Array(height).fill(0));
-        for (let row = 0; row < height; row += 1) {
-          for (let col = 0; col < width; col += 1) {
-            if (direction > 0) rotated[col][height - 1 - row] = matrix[row][col];
-            else rotated[width - 1 - col][row] = matrix[row][col];
-          }
-        }
-        return rotated;
+        return Core.collides(board, piece, offsetX, offsetY, cells);
       }
 
       function rotate(direction) {
@@ -719,16 +694,14 @@
       }
 
       function clearRows() {
-        const remaining = board.filter((row) => row.some((cell) => cell === null));
-        const cleared = ROWS - remaining.length;
-        if (cleared === 0) return 0;
-        const points = [0, 100, 300, 500, 800][cleared] || 0;
-        score += points * level;
-        lines += cleared;
-        level = Math.floor(lines / 10) + 1;
-        board = Array.from({ length: cleared }, () => Array(COLS).fill(null)).concat(remaining);
+        const result = Core.clearRows(board);
+        if (result.cleared === 0) return 0;
+        board = result.board;
+        score += Core.lineScore(result.cleared, level);
+        lines += result.cleared;
+        level = Core.levelForLines(lines);
         updateStats();
-        return cleared;
+        return result.cleared;
       }
 
       function lockPiece() {
@@ -779,7 +752,7 @@
       }
 
       function gravityDelay() {
-        return Math.max(100, 800 - (level - 1) * 60);
+        return Core.gravityDelay(level);
       }
 
       function stopGravity() {

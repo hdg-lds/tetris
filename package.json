@@ -1,0 +1,27 @@
+{
+  "name": "tetris",
+  "version": "1.0.0",
+  "description": "별도의 패키지 설치나 인터넷 연결 없이 브라우저에서 플레이하는 싱글 플레이 테트리스입니다. 게임 화면과 스타일, 로직이 모두 `index.html` 하나에 들어 있고, WebAudio API가 코로베이니카 멜로디를 BGM으로 연주합니다.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hdg-lds/tetris.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hdg-lds/tetris/issues"
+  },
+  "homepage": "https://github.com/hdg-lds/tetris#readme",
+  "devDependencies": {
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2"
+  }
+}
