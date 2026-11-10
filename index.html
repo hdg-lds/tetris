@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d13">
+  <title>BLOCK//DROP — 레트로 테트리스</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f1f6f7;
+      --muted: #8b9aa1;
+      --line: rgba(141, 175, 184, .16);
+      --panel: #101820;
+      --panel-deep: #0b1219;
+      --cyan: #62f4e4;
+      --lime: #d7ff70;
+      --pink: #ff638f;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #080d13;
+      color: var(--ink);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 50% -20%, rgba(42, 115, 119, .22), transparent 48%),
+        linear-gradient(180deg, #0c131a 0%, #080d13 56%, #090e13 100%);
+    }
+
+    button { font: inherit; }
+
+    .page {
+      width: min(100% - 40px, 1080px);
+      margin: 0 auto;
+      padding: 28px 0 36px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 2px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+    .brand-mark {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border: 1px solid rgba(98, 244, 228, .38);
+      border-radius: 10px;
+      background: rgba(98, 244, 228, .08);
+      color: var(--cyan);
+      font: 700 18px/1 var(--mono);
+      box-shadow: inset 0 0 18px rgba(98, 244, 228, .08), 0 0 22px rgba(98, 244, 228, .06);
+    }
+
+    .brand-name { margin: 0; font: 700 13px/1.2 var(--mono); letter-spacing: .12em; }
+    .brand-sub { margin: 4px 0 0; color: var(--muted); font: 10px/1.2 var(--mono); letter-spacing: .14em; }
+
+    .live-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #b9c8cc;
+      font: 10px/1 var(--mono);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 9px var(--lime); }
+
+    .music-toggle {
+      display: inline-flex;
+      min-height: 34px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 11px;
+      border: 1px solid rgba(98, 244, 228, .25);
+      border-radius: 7px;
+      background: rgba(98, 244, 228, .07);
+      color: var(--cyan);
+      cursor: pointer;
+      font: 10px/1 var(--mono);
+      letter-spacing: .06em;
+    }
+
+    .music-toggle[aria-pressed="false"] { border-color: var(--line); background: #111a21; color: #8b9aa1; }
+    .music-toggle:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+    .intro { padding: 27px 2px 18px; }
+    .eyebrow { margin: 0 0 9px; color: var(--cyan); font: 11px/1.4 var(--mono); letter-spacing: .18em; }
+    h1 { margin: 0; font-size: clamp(24px, 4vw, 36px); line-height: 1.12; letter-spacing: -.045em; }
+    .intro-copy { margin: 9px 0 0; color: #96a6ad; font-size: 13px; line-height: 1.6; }
+
+    .intro-actions { display: flex; align-items: center; gap: 14px; margin-top: 16px; }
+    .button-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+    .intro-facts { display: flex; flex-wrap: wrap; gap: 7px; color: #83949b; font: 9px/1.4 var(--mono); letter-spacing: .04em; }
+    .intro-facts span { padding: 6px 8px; border: 1px solid var(--line); border-radius: 999px; }
+
+    .how-to-play {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      align-items: center;
+      gap: 20px;
+      margin: 0 0 20px;
+      padding: 17px 19px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(15, 24, 32, .68);
+    }
+
+    .how-label { margin: 0 0 7px; color: var(--cyan); font: 9px/1 var(--mono); letter-spacing: .16em; }
+    .how-to-play h2 { margin: 0; font-size: 15px; letter-spacing: -.02em; }
+    .how-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .how-step { display: flex; align-items: flex-start; gap: 9px; min-width: 0; }
+    .step-number { display: grid; width: 25px; height: 25px; flex: none; place-items: center; border: 1px solid rgba(98, 244, 228, .25); border-radius: 7px; color: var(--cyan); font: 10px/1 var(--mono); }
+    .how-step h3 { margin: 1px 0 4px; font-size: 10px; }
+    .how-step p { margin: 0; color: #8e9fa6; font-size: 9px; line-height: 1.5; }
+
+    .game-layout {
+      display: grid;
+      grid-template-columns: minmax(275px, 390px) minmax(280px, 1fr);
+      align-items: start;
+      gap: 20px;
+      scroll-margin-top: 16px;
+    }
+
+    .board-card, .side-card {
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: linear-gradient(145deg, rgba(17, 27, 36, .96), rgba(12, 19, 26, .98));
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+    }
+
+    .board-card { padding: 17px; }
+
+    .card-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 1px 13px;
+      color: #a6b5ba;
+      font: 10px/1 var(--mono);
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .board-wrap {
+      position: relative;
+      width: min(100%, 330px);
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid rgba(98, 244, 228, .22);
+      border-radius: 7px;
+      background: #071016;
+      box-shadow: 0 0 0 4px rgba(3, 8, 12, .5), inset 0 0 30px rgba(31, 112, 111, .08), 0 0 28px rgba(17, 213, 194, .05);
+    }
+
+    #board {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 2;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      padding: 24px;
+      background: rgba(5, 12, 17, .78);
+      text-align: center;
+      backdrop-filter: blur(3px);
+    }
+
+    .overlay[hidden] { display: none; }
+    .overlay-kicker { margin: 0 0 8px; color: var(--cyan); font: 10px/1.2 var(--mono); letter-spacing: .22em; }
+    .overlay h2 { margin: 0; font-size: clamp(23px, 6vw, 34px); letter-spacing: -.04em; }
+    .overlay-copy { max-width: 235px; margin: 9px 0 17px; color: #afbdc1; font-size: 12px; line-height: 1.65; }
+
+    .button {
+      min-height: 42px;
+      padding: 0 16px;
+      border: 1px solid rgba(98, 244, 228, .55);
+      border-radius: 7px;
+      background: var(--cyan);
+      color: #061310;
+      cursor: pointer;
+      font: 700 11px/1 var(--mono);
+      letter-spacing: .04em;
+      transition: transform .15s ease, filter .15s ease, opacity .15s ease;
+    }
+
+    .button:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+    .button:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+    .button:disabled { cursor: not-allowed; opacity: .38; }
+    .button.secondary { border-color: var(--line); background: #17232c; color: #d5e0e2; }
+
+    .board-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 15px; color: #7f9198; font: 9px/1.4 var(--mono); letter-spacing: .08em; }
+    .board-footer strong { color: #bac8cc; font-weight: 500; }
+
+    .side-column { display: grid; gap: 14px; }
+    .side-card { padding: 17px; }
+
+    .stats-grid { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 9px; }
+
+    .stat {
+      min-height: 83px;
+      padding: 13px 12px 11px;
+      border: 1px solid rgba(143, 174, 181, .13);
+      border-radius: 9px;
+      background: rgba(4, 10, 15, .28);
+    }
+
+    .stat-label { display: block; color: #8e9fa6; font: 9px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .stat-value { display: block; margin-top: 10px; color: #f3f7f5; font: 700 clamp(19px, 3vw, 26px)/1 var(--mono); font-variant-numeric: tabular-nums; }
+    .stat:first-child .stat-value { color: var(--lime); }
+
+    .side-heading { display: flex; align-items: center; justify-content: space-between; margin: 0 0 14px; color: #e4eded; font-size: 12px; font-weight: 650; }
+    .side-heading small { color: #72848c; font: 9px/1 var(--mono); letter-spacing: .12em; }
+
+    .next-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    #next-piece { display: block; width: 92px; height: 92px; border: 1px solid rgba(143, 174, 181, .13); border-radius: 8px; background: #091118; }
+    .next-note { max-width: 145px; margin: 0; color: #91a2a9; font-size: 11px; line-height: 1.7; }
+    .next-note b { color: var(--cyan); font: 10px/1.5 var(--mono); letter-spacing: .05em; }
+
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .action-row .button:first-child { grid-column: 1 / -1; }
+    .action-row .music-toggle { grid-column: 1 / -1; width: 100%; }
+
+    .keys { display: grid; grid-template-columns: 1fr 1fr; gap: 11px 15px; margin: 0; }
+    .key-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #98a8ad; font-size: 10px; }
+    kbd {
+      display: inline-flex;
+      min-width: 25px;
+      height: 23px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 6px;
+      border: 1px solid rgba(154, 183, 190, .2);
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      background: #111c24;
+      color: #d8e4e5;
+      font: 10px/1 var(--mono);
+      white-space: nowrap;
+    }
+
+    .key-label { text-align: right; }
+    .status-line { display: flex; align-items: center; gap: 8px; margin: 13px 0 0; color: #75878f; font-size: 10px; }
+    .status-light { width: 6px; height: 6px; flex: none; border-radius: 50%; background: #75878f; }
+    .status-line[data-state="running"] .status-light { background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+    .status-line[data-state="paused"] .status-light { background: #ffc960; box-shadow: 0 0 8px #ffc960; }
+    .status-line[data-state="over"] .status-light { background: var(--pink); box-shadow: 0 0 8px var(--pink); }
+
+    .footnote { margin: 17px 2px 0; color: #66767e; font: 9px/1.7 var(--mono); text-align: center; letter-spacing: .02em; }
+    .touch-dock { display: none; }
+
+    @media (max-width: 720px), (pointer: coarse) {
+      .page { width: min(100% - 28px, 480px); padding-top: 18px; padding-bottom: 150px; }
+      .intro { padding: 23px 2px 17px; }
+      .how-to-play { grid-template-columns: 1fr; gap: 13px; padding: 14px; }
+      .how-to-play h2 { font-size: 14px; }
+      .how-steps { grid-template-columns: 1fr; gap: 9px; }
+      .how-step { align-items: center; }
+      .how-step p { font-size: 10px; }
+      .game-layout { grid-template-columns: minmax(0, 1fr); gap: 13px; }
+      .board-card { padding: 13px; }
+      .board-wrap { width: min(100%, 330px); }
+      .side-column { grid-template-columns: 1fr 1fr; align-items: start; }
+      .stats-card, .actions-card { grid-column: 1 / -1; }
+
+      .touch-dock {
+        position: fixed;
+        z-index: 10;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: grid;
+        gap: 7px;
+        padding: 9px max(10px, calc((100vw - 480px) / 2)) calc(9px + env(safe-area-inset-bottom));
+        border-top: 1px solid rgba(98, 244, 228, .18);
+        background: rgba(8, 14, 20, .94);
+        box-shadow: 0 -12px 35px rgba(0, 0, 0, .35);
+        backdrop-filter: blur(14px);
+        touch-action: none;
+      }
+
+      .touch-moves, .touch-actions { display: grid; gap: 6px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .touch-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .touch-key {
+        min-width: 0;
+        min-height: 43px;
+        padding: 0 5px;
+        border: 1px solid rgba(141, 175, 184, .2);
+        border-radius: 8px;
+        background: #121e27;
+        color: #dce7e7;
+        cursor: pointer;
+        font: 700 15px/1 var(--mono);
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        white-space: nowrap;
+        touch-action: none;
+      }
+
+      .touch-key:active { border-color: var(--cyan); background: #1a343b; color: var(--cyan); }
+      .touch-key:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+      .touch-key:disabled { cursor: default; opacity: .42; }
+      .touch-key.action { font-size: 9px; letter-spacing: .02em; }
+      .touch-key.primary { border-color: rgba(98, 244, 228, .5); background: rgba(98, 244, 228, .13); color: var(--cyan); }
+      .touch-key.music-toggle { min-height: 43px; padding: 0 4px; font-size: 9px; }
+    }
+
+    @media (max-width: 420px) {
+      .page { width: min(100% - 20px, 390px); }
+      .topbar { padding-bottom: 16px; }
+      .live-tag { display: none; }
+      .topbar-actions { gap: 6px; }
+      .topbar .music-toggle { min-height: 32px; padding: 0 8px; font-size: 9px; }
+      .brand-mark { width: 34px; height: 34px; }
+      .intro-copy { max-width: 330px; }
+      .intro-actions { align-items: flex-start; flex-direction: column; gap: 10px; }
+      .board-card { padding: 10px; }
+      .side-card { padding: 13px; }
+      .stats-grid { gap: 6px; }
+      .stat { min-height: 73px; padding: 11px 8px 9px; }
+      .stat-label { font-size: 8px; }
+      .stat-value { font-size: 20px; }
+      .keys { gap: 10px 8px; }
+      .key-item { font-size: 9px; }
+      .touch-moves, .touch-actions { gap: 5px; }
+      .touch-key { min-height: 41px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand" aria-label="Block Drop 아케이드">
+        <div class="brand-mark" aria-hidden="true">▦</div>
+        <div>
+          <p class="brand-name">BLOCK//DROP</p>
+          <p class="brand-sub">ARCADE SYSTEM 01</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <div class="live-tag"><span class="live-dot" aria-hidden="true"></span> SINGLE PLAYER</div>
+        <button class="music-toggle" type="button" data-music-toggle aria-pressed="true" aria-label="코로베이니카 BGM 끄기">
+          <span aria-hidden="true">♫</span><span data-music-label>BGM ON</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">INSERT COIN · CLEAR LINES · KEEP GOING</p>
+      <h1 id="page-title">한 칸씩 쌓고,<br>한 줄씩 비우세요.</h1>
+      <p class="intro-copy">블록을 움직이고 회전해 가로줄을 완성하세요. 줄을 지울수록 점수와 레벨이 올라갑니다.</p>
+      <div class="intro-actions">
+        <a class="button button-link" href="#game">게임 방법과 플레이 <span aria-hidden="true">&nbsp;↓</span></a>
+        <div class="intro-facts" aria-label="게임 특징"><span>10 × 20 보드</span><span>7종 블록</span><span>10줄마다 레벨 상승</span></div>
+      </div>
+    </section>
+
+    <section class="how-to-play" aria-labelledby="how-title">
+      <div>
+        <p class="how-label">HOW TO PLAY</p>
+        <h2 id="how-title">빈틈없이 쌓고,<br>가로줄을 비우세요.</h2>
+      </div>
+      <div class="how-steps">
+        <article class="how-step"><span class="step-number">01</span><div><h3>옮기고 회전하기</h3><p>블록을 움직여 빈 공간에 맞춰요.</p></div></article>
+        <article class="how-step"><span class="step-number">02</span><div><h3>가로줄 완성하기</h3><p>칸을 모두 채우면 줄이 사라지고 점수를 얻어요.</p></div></article>
+        <article class="how-step"><span class="step-number">03</span><div><h3>점점 빨라지는 속도</h3><p>10줄을 지울 때마다 레벨이 올라가요.</p></div></article>
+      </div>
+    </section>
+
+    <section id="game" class="game-layout" aria-label="테트리스 게임">
+      <section class="board-card" aria-label="게임 보드">
+        <div class="card-label"><span>PLAYFIELD</span><span>10 × 20</span></div>
+        <div class="board-wrap">
+          <canvas id="board" width="300" height="600" role="img" aria-label="테트리스 게임 보드"></canvas>
+          <div id="overlay" class="overlay">
+            <p id="overlay-kicker" class="overlay-kicker">READY PLAYER 01</p>
+            <h2 id="overlay-title">시작할까요?</h2>
+            <p id="overlay-copy" class="overlay-copy">Enter 키를 누르거나 아래 버튼으로 게임을 시작하세요.</p>
+            <button id="overlay-button" class="button" type="button">게임 시작</button>
+          </div>
+        </div>
+        <div class="board-footer"><span>MODE <strong>ENDLESS</strong></span><span>OBJECTIVE <strong>CLEAR LINES</strong></span></div>
+      </section>
+
+      <div class="side-column">
+        <section class="side-card stats-card" aria-label="게임 점수">
+          <div class="stats-grid">
+            <div class="stat"><span class="stat-label">Score</span><output id="score" class="stat-value" aria-live="polite">000000</output></div>
+            <div class="stat"><span class="stat-label">Level</span><output id="level" class="stat-value">01</output></div>
+            <div class="stat"><span class="stat-label">Lines</span><output id="lines" class="stat-value">00</output></div>
+          </div>
+        </section>
+
+        <section class="side-card" aria-labelledby="next-title">
+          <h2 id="next-title" class="side-heading"><span>다음 블록</span><small>NEXT UP</small></h2>
+          <div class="next-row">
+            <canvas id="next-piece" width="112" height="112" role="img" aria-label="다음 블록 미리보기"></canvas>
+            <p class="next-note">다음에 내려올 블록을 확인하고<br><b>미리 자리를 준비하세요.</b></p>
+          </div>
+        </section>
+
+        <section class="side-card actions-card" aria-label="게임 조작">
+          <h2 class="side-heading"><span>게임 조작</span><small>KEYBOARD</small></h2>
+          <dl class="keys">
+            <div class="key-item"><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd class="key-label">좌우 이동</dd></div>
+            <div class="key-item"><dt><kbd>↓</kbd></dt><dd class="key-label">소프트 드롭</dd></div>
+            <div class="key-item"><dt><kbd>↑</kbd> <kbd>X</kbd></dt><dd class="key-label">시계 회전</dd></div>
+            <div class="key-item"><dt><kbd>Z</kbd></dt><dd class="key-label">반시계 회전</dd></div>
+            <div class="key-item"><dt><kbd>Space</kbd></dt><dd class="key-label">하드 드롭</dd></div>
+            <div class="key-item"><dt><kbd>P</kbd></dt><dd class="key-label">일시정지</dd></div>
+          </dl>
+          <p id="status" class="status-line" data-state="ready" aria-live="polite"><span class="status-light" aria-hidden="true"></span><span id="status-text">Enter 키를 눌러 시작</span></p>
+        </section>
+
+        <section class="side-card actions-card" aria-label="게임 버튼">
+          <div class="action-row">
+            <button id="start-button" class="button" type="button">게임 시작</button>
+            <button id="pause-button" class="button secondary" type="button" disabled>일시정지</button>
+            <button id="reset-button" class="button secondary" type="button">새 게임</button>
+            <button class="music-toggle" type="button" data-music-toggle aria-pressed="true" aria-label="코로베이니카 BGM 끄기">
+              <span aria-hidden="true">♫</span><span data-music-label>BGM ON</span>
+            </button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <p class="footnote">키보드: ← → 이동 · ↑ / X 회전 · Z 반대 회전 · ↓ 천천히 낙하 · SPACE 즉시 낙하 · P 일시정지 · R 새 게임<br>모바일: 화면 아래 터치 버튼 사용</p>
+  </main>
+
+  <div id="touch-dock" class="touch-dock" aria-label="모바일 터치 조작">
+    <div class="touch-moves">
+      <button class="touch-key" type="button" data-touch="rotate-left" aria-label="반시계 방향 회전" title="반시계 방향 회전">↶</button>
+      <button class="touch-key" type="button" data-touch="left" aria-label="왼쪽 이동" title="왼쪽 이동">←</button>
+      <button class="touch-key" type="button" data-touch="down" aria-label="소프트 드롭" title="소프트 드롭">↓</button>
+      <button class="touch-key" type="button" data-touch="right" aria-label="오른쪽 이동" title="오른쪽 이동">→</button>
+      <button class="touch-key" type="button" data-touch="rotate-right" aria-label="시계 방향 회전" title="시계 방향 회전">↻</button>
+    </div>
+    <div class="touch-actions">
+      <button class="touch-key action primary" type="button" data-touch="start">게임 시작</button>
+      <button class="touch-key action" type="button" data-touch="hard-drop" aria-label="하드 드롭">DROP</button>
+      <button class="touch-key action" type="button" data-touch="pause">일시정지</button>
+      <button class="touch-key music-toggle" type="button" data-music-toggle aria-pressed="true" aria-label="코로베이니카 BGM 끄기">
+        <span aria-hidden="true">♫</span><span data-music-label>BGM ON</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const COLS = 10;
+      const ROWS = 20;
+      const CELL = 30;
+      const SHAPES = {
+        I: { color: "#59e8e2", cells: [[1, 1, 1, 1]] },
+        O: { color: "#ffda69", cells: [[1, 1], [1, 1]] },
+        T: { color: "#bf83ff", cells: [[0, 1, 0], [1, 1, 1]] },
+        S: { color: "#9be76e", cells: [[0, 1, 1], [1, 1, 0]] },
+        Z: { color: "#ff6b83", cells: [[1, 1, 0], [0, 1, 1]] },
+        J: { color: "#6e9dff", cells: [[1, 0, 0], [1, 1, 1]] },
+        L: { color: "#ffad62", cells: [[0, 0, 1], [1, 1, 1]] }
+      };
+      const KOROBEINIKI = [
+        [76, 1], [71, .5], [72, .5], [74, 1], [72, .5], [71, .5], [69, 1], [69, .5], [72, .5], [76, 1],
+        [74, .5], [72, .5], [71, 1.5], [72, .5], [74, 1], [76, 1], [72, 1], [69, 1], [69, 1],
+        [74, 1], [77, .5], [81, 1], [79, .5], [77, .5], [76, 1], [72, .5], [76, 1], [74, .5], [72, 1],
+        [71, 1.5], [72, .5], [74, 1], [76, 1], [72, 1], [69, 1], [69, 1]
+      ];
+
+      const boardCanvas = document.getElementById("board");
+      const boardContext = boardCanvas.getContext("2d");
+      const nextCanvas = document.getElementById("next-piece");
+      const nextContext = nextCanvas.getContext("2d");
+      const scoreOutput = document.getElementById("score");
+      const levelOutput = document.getElementById("level");
+      const linesOutput = document.getElementById("lines");
+      const statusElement = document.getElementById("status");
+      const statusText = document.getElementById("status-text");
+      const overlay = document.getElementById("overlay");
+      const overlayKicker = document.getElementById("overlay-kicker");
+      const overlayTitle = document.getElementById("overlay-title");
+      const overlayCopy = document.getElementById("overlay-copy");
+      const overlayButton = document.getElementById("overlay-button");
+      const startButton = document.getElementById("start-button");
+      const pauseButton = document.getElementById("pause-button");
+      const resetButton = document.getElementById("reset-button");
+      const touchDock = document.getElementById("touch-dock");
+      const touchStartButton = touchDock.querySelector('[data-touch="start"]');
+      const touchPauseButton = touchDock.querySelector('[data-touch="pause"]');
+      const touchActionButtons = Array.from(touchDock.querySelectorAll("[data-touch]"));
+      const musicButtons = Array.from(document.querySelectorAll("[data-music-toggle]"));
+
+      let board = emptyBoard();
+      let bag = [];
+      let current = null;
+      let nextType = null;
+      let score = 0;
+      let lines = 0;
+      let level = 1;
+      let state = "ready";
+      let gravityTimer = null;
+      let musicEnabled = true;
+      let audioContext = null;
+      let musicGain = null;
+      const musicVoices = new Map();
+      let musicTimer = null;
+      let musicStarting = false;
+      let musicIndex = 0;
+      let musicNextTime = 0;
+      let touchRepeatTimer = null;
+
+      function playMusicTone(midi, startTime, duration, wave = "square", volume = .04) {
+        const oscillator = audioContext.createOscillator();
+        const envelope = audioContext.createGain();
+        const frequency = 440 * (2 ** ((midi - 69) / 12));
+        const endTime = startTime + duration;
+        const releaseTime = Math.max(startTime + .025, endTime - .025);
+
+        oscillator.type = wave;
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+        envelope.gain.setValueAtTime(.0001, startTime);
+        envelope.gain.exponentialRampToValueAtTime(volume, startTime + .012);
+        envelope.gain.setValueAtTime(volume, releaseTime);
+        envelope.gain.exponentialRampToValueAtTime(.0001, endTime);
+        oscillator.connect(envelope);
+        envelope.connect(musicGain);
+        musicVoices.set(oscillator, envelope);
+        oscillator.start(startTime);
+        oscillator.stop(endTime + .01);
+        oscillator.addEventListener("ended", () => {
+          musicVoices.delete(oscillator);
+          oscillator.disconnect();
+          envelope.disconnect();
+        }, { once: true });
+      }
+
+      function scheduleMusic() {
+        if (!audioContext || !musicEnabled || state !== "running") return;
+        const beat = 60 / 144;
+        const horizon = audioContext.currentTime + .18;
+        while (musicNextTime < horizon) {
+          const [midi, beats] = KOROBEINIKI[musicIndex];
+          const duration = beat * beats;
+          playMusicTone(midi, musicNextTime, duration);
+          if (musicIndex === 0 || musicIndex === 19) {
+            playMusicTone(midi - 24, musicNextTime, beat * 1.7, "triangle", .009);
+          }
+          musicNextTime += duration;
+          musicIndex = (musicIndex + 1) % KOROBEINIKI.length;
+        }
+      }
+
+      async function startMusic() {
+        if (!musicEnabled || state !== "running" || musicTimer !== null || musicStarting) return;
+        const AudioContextType = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextType) return;
+
+        musicStarting = true;
+        try {
+          if (!audioContext) {
+            audioContext = new AudioContextType();
+            musicGain = audioContext.createGain();
+            musicGain.gain.value = .7;
+            musicGain.connect(audioContext.destination);
+          }
+          await audioContext.resume();
+          if (!musicEnabled || state !== "running") {
+            if (audioContext.state === "running") audioContext.suspend().catch(() => {});
+            return;
+          }
+          musicNextTime = audioContext.currentTime + .05;
+          musicTimer = window.setInterval(scheduleMusic, 25);
+          scheduleMusic();
+        } catch (error) {
+          console.warn("BGM을 시작하지 못했습니다.", error);
+        } finally {
+          musicStarting = false;
+        }
+      }
+
+      function stopMusic() {
+        if (musicTimer !== null) {
+          window.clearInterval(musicTimer);
+          musicTimer = null;
+        }
+        for (const [oscillator, envelope] of musicVoices) {
+          try { oscillator.stop(); } catch (error) { /* The voice may have ended already. */ }
+          oscillator.disconnect();
+          envelope.disconnect();
+        }
+        musicVoices.clear();
+        if (audioContext && audioContext.state === "running") audioContext.suspend().catch(() => {});
+      }
+
+      function syncMusicButtons() {
+        const supported = Boolean(window.AudioContext || window.webkitAudioContext);
+        for (const button of musicButtons) {
+          button.disabled = !supported;
+          button.setAttribute("aria-pressed", String(musicEnabled));
+          button.setAttribute("aria-label", musicEnabled ? "코로베이니카 BGM 끄기" : "코로베이니카 BGM 켜기");
+          const label = button.querySelector("[data-music-label]");
+          if (label) label.textContent = supported ? (musicEnabled ? "BGM ON" : "BGM OFF") : "오디오 미지원";
+        }
+      }
+
+      function toggleMusic() {
+        musicEnabled = !musicEnabled;
+        syncMusicButtons();
+        if (musicEnabled && state === "running") startMusic();
+        else stopMusic();
+      }
+
+      function emptyBoard() {
+        return Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      }
+
+      function refillBag() {
+        bag = Object.keys(SHAPES);
+        for (let i = bag.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [bag[i], bag[j]] = [bag[j], bag[i]];
+        }
+      }
+
+      function takeType() {
+        if (bag.length === 0) refillBag();
+        return bag.pop();
+      }
+
+      function makePiece(type) {
+        const cells = SHAPES[type].cells.map((row) => row.slice());
+        return { type, color: SHAPES[type].color, cells, x: Math.floor((COLS - cells[0].length) / 2), y: 0 };
+      }
+
+      function collides(piece, offsetX = 0, offsetY = 0, cells = piece.cells) {
+        for (let row = 0; row < cells.length; row += 1) {
+          for (let col = 0; col < cells[row].length; col += 1) {
+            if (!cells[row][col]) continue;
+            const x = piece.x + col + offsetX;
+            const y = piece.y + row + offsetY;
+            if (x < 0 || x >= COLS || y >= ROWS) return true;
+            if (y >= 0 && board[y][x]) return true;
+          }
+        }
+        return false;
+      }
+
+      function rotateMatrix(matrix, direction) {
+        const height = matrix.length;
+        const width = matrix[0].length;
+        const rotated = Array.from({ length: width }, () => Array(height).fill(0));
+        for (let row = 0; row < height; row += 1) {
+          for (let col = 0; col < width; col += 1) {
+            if (direction > 0) rotated[col][height - 1 - row] = matrix[row][col];
+            else rotated[width - 1 - col][row] = matrix[row][col];
+          }
+        }
+        return rotated;
+      }
+
+      function rotate(direction) {
+        if (state !== "running" || !current) return;
+        const rotated = rotateMatrix(current.cells, direction);
+        for (const kick of [0, -1, 1, -2, 2]) {
+          if (!collides(current, kick, 0, rotated)) {
+            current.x += kick;
+            current.cells = rotated;
+            draw();
+            return;
+          }
+        }
+      }
+
+      function move(dx) {
+        if (state !== "running" || !current || collides(current, dx, 0)) return;
+        current.x += dx;
+        draw();
+      }
+
+      function spawnPiece() {
+        const type = nextType || takeType();
+        current = makePiece(type);
+        nextType = takeType();
+        drawNext();
+        if (collides(current)) endGame();
+      }
+
+      function clearRows() {
+        const remaining = board.filter((row) => row.some((cell) => cell === null));
+        const cleared = ROWS - remaining.length;
+        if (cleared === 0) return 0;
+        const points = [0, 100, 300, 500, 800][cleared] || 0;
+        score += points * level;
+        lines += cleared;
+        level = Math.floor(lines / 10) + 1;
+        board = Array.from({ length: cleared }, () => Array(COLS).fill(null)).concat(remaining);
+        updateStats();
+        return cleared;
+      }
+
+      function lockPiece() {
+        if (!current) return;
+        for (let row = 0; row < current.cells.length; row += 1) {
+          for (let col = 0; col < current.cells[row].length; col += 1) {
+            if (!current.cells[row][col]) continue;
+            const x = current.x + col;
+            const y = current.y + row;
+            if (y < 0) {
+              endGame();
+              return;
+            }
+            board[y][x] = current.color;
+          }
+        }
+        clearRows();
+        spawnPiece();
+        draw();
+      }
+
+      function stepDown(softDrop = false) {
+        if (state !== "running" || !current) return false;
+        if (!collides(current, 0, 1)) {
+          current.y += 1;
+          if (softDrop) {
+            score += 1;
+            updateStats();
+          }
+          draw();
+          return true;
+        }
+        lockPiece();
+        return false;
+      }
+
+      function hardDrop() {
+        if (state !== "running" || !current) return;
+        let distance = 0;
+        while (!collides(current, 0, 1)) {
+          current.y += 1;
+          distance += 1;
+        }
+        score += distance * 2;
+        updateStats();
+        lockPiece();
+        draw();
+      }
+
+      function gravityDelay() {
+        return Math.max(100, 800 - (level - 1) * 60);
+      }
+
+      function stopGravity() {
+        if (gravityTimer !== null) {
+          window.clearTimeout(gravityTimer);
+          gravityTimer = null;
+        }
+      }
+
+      function scheduleGravity() {
+        stopGravity();
+        if (state !== "running") return;
+        gravityTimer = window.setTimeout(() => {
+          gravityTimer = null;
+          if (state === "running") {
+            stepDown(false);
+            scheduleGravity();
+          }
+        }, gravityDelay());
+      }
+
+      function syncTouchControls() {
+        touchStartButton.disabled = state === "running";
+        touchStartButton.textContent = state === "paused" ? "계속" : state === "over" ? "다시 시작" : state === "running" ? "진행 중" : "게임 시작";
+        touchPauseButton.disabled = state !== "running" && state !== "paused";
+        touchPauseButton.textContent = state === "paused" ? "계속" : "일시정지";
+        for (const button of touchActionButtons) {
+          const action = button.dataset.touch;
+          if (action !== "start" && action !== "pause") button.disabled = state !== "running";
+        }
+      }
+
+      function setState(nextState) {
+        state = nextState;
+        statusElement.dataset.state = nextState;
+        const labels = {
+          ready: "Enter 키를 눌러 시작",
+          running: "게임 진행 중",
+          paused: "일시정지 상태",
+          over: "게임 종료 — 다시 도전해 보세요"
+        };
+        statusText.textContent = labels[nextState];
+        pauseButton.disabled = nextState !== "running" && nextState !== "paused";
+        pauseButton.textContent = nextState === "paused" ? "계속하기" : "일시정지";
+        startButton.textContent = nextState === "ready" ? "게임 시작" : nextState === "paused" ? "계속하기" : nextState === "running" ? "플레이 중" : "다시 시작";
+        startButton.disabled = nextState === "running";
+
+        if (nextState === "running") {
+          overlay.hidden = true;
+          scheduleGravity();
+          startMusic();
+        } else {
+          stopGravity();
+          stopMusic();
+          overlay.hidden = false;
+          if (nextState === "paused") {
+            overlayKicker.textContent = "PAUSED";
+            overlayTitle.textContent = "잠깐 쉬어가요.";
+            overlayCopy.textContent = "P 키 또는 계속하기 버튼을 눌러 이어서 플레이하세요.";
+            overlayButton.textContent = "계속하기";
+          } else if (nextState === "over") {
+            overlayKicker.textContent = "GAME OVER";
+            overlayTitle.textContent = "이번 판은 여기까지.";
+            overlayCopy.textContent = `최종 점수 ${String(score).padStart(6, "0")}점 · ${lines}줄을 지웠어요.`;
+            overlayButton.textContent = "다시 시작";
+          } else {
+            overlayKicker.textContent = "READY PLAYER 01";
+            overlayTitle.textContent = "시작할까요?";
+            overlayCopy.textContent = "Enter 키를 누르거나 아래 버튼으로 게임을 시작하세요.";
+            overlayButton.textContent = "게임 시작";
+          }
+        }
+        syncTouchControls();
+        draw();
+      }
+
+      function startGame() {
+        stopGravity();
+        musicIndex = 0;
+        board = emptyBoard();
+        bag = [];
+        current = null;
+        nextType = takeType();
+        score = 0;
+        lines = 0;
+        level = 1;
+        updateStats();
+        spawnPiece();
+        setState("running");
+      }
+
+      function endGame() {
+        current = null;
+        setState("over");
+      }
+
+      function togglePause() {
+        if (state === "running") setState("paused");
+        else if (state === "paused") setState("running");
+      }
+
+      function runTouchAction(action) {
+        if (action === "start") {
+          if (state === "paused") setState("running");
+          else if (state !== "running") startGame();
+          return;
+        }
+        if (action === "pause") {
+          togglePause();
+          return;
+        }
+        if (state !== "running") return;
+        if (action === "left") move(-1);
+        else if (action === "right") move(1);
+        else if (action === "down") stepDown(true);
+        else if (action === "rotate-left") rotate(-1);
+        else if (action === "rotate-right") rotate(1);
+        else if (action === "hard-drop") hardDrop();
+      }
+
+      function stopTouchRepeat() {
+        if (touchRepeatTimer !== null) {
+          window.clearInterval(touchRepeatTimer);
+          touchRepeatTimer = null;
+        }
+      }
+
+      function handleTouchPointerDown(event) {
+        const button = event.target.closest("[data-touch]");
+        if (!button || !["left", "right", "down"].includes(button.dataset.touch)) return;
+        event.preventDefault();
+        stopTouchRepeat();
+        try { button.setPointerCapture(event.pointerId); } catch (error) { /* Pointer capture is optional. */ }
+        runTouchAction(button.dataset.touch);
+        touchRepeatTimer = window.setInterval(() => runTouchAction(button.dataset.touch), 115);
+      }
+
+      function handleTouchClick(event) {
+        const button = event.target.closest("[data-touch]");
+        if (!button) return;
+        const action = button.dataset.touch;
+        if (["left", "right", "down"].includes(action)) {
+          if (event.detail === 0) runTouchAction(action);
+          return;
+        }
+        runTouchAction(action);
+      }
+
+      function updateStats() {
+        scoreOutput.textContent = String(score).padStart(6, "0");
+        levelOutput.textContent = String(level).padStart(2, "0");
+        linesOutput.textContent = String(lines).padStart(2, "0");
+      }
+
+      function drawCell(context, x, y, size, color, inset = 1) {
+        const px = x * size;
+        const py = y * size;
+        context.fillStyle = color;
+        context.fillRect(px + inset, py + inset, size - inset * 2, size - inset * 2);
+        context.fillStyle = "rgba(255,255,255,.20)";
+        context.fillRect(px + inset + 2, py + inset + 2, Math.max(0, size - inset * 2 - 4), 2);
+        context.fillStyle = "rgba(0,0,0,.22)";
+        context.fillRect(px + inset + 2, py + size - inset - 3, Math.max(0, size - inset * 2 - 4), 2);
+        context.strokeStyle = "rgba(3,12,17,.42)";
+        context.lineWidth = 1;
+        context.strokeRect(px + inset + .5, py + inset + .5, size - inset * 2 - 1, size - inset * 2 - 1);
+      }
+
+      function draw() {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        if (boardCanvas.width !== CELL * COLS * dpr || boardCanvas.height !== CELL * ROWS * dpr) {
+          boardCanvas.width = CELL * COLS * dpr;
+          boardCanvas.height = CELL * ROWS * dpr;
+        }
+        boardContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+        boardContext.fillStyle = "#071016";
+        boardContext.fillRect(0, 0, CELL * COLS, CELL * ROWS);
+
+        boardContext.strokeStyle = "rgba(117, 163, 170, .095)";
+        boardContext.lineWidth = 1;
+        for (let x = 0; x <= COLS; x += 1) {
+          boardContext.beginPath();
+          boardContext.moveTo(x * CELL + .5, 0);
+          boardContext.lineTo(x * CELL + .5, ROWS * CELL);
+          boardContext.stroke();
+        }
+        for (let y = 0; y <= ROWS; y += 1) {
+          boardContext.beginPath();
+          boardContext.moveTo(0, y * CELL + .5);
+          boardContext.lineTo(COLS * CELL, y * CELL + .5);
+          boardContext.stroke();
+        }
+
+        for (let y = 0; y < ROWS; y += 1) {
+          for (let x = 0; x < COLS; x += 1) {
+            if (board[y][x]) drawCell(boardContext, x, y, CELL, board[y][x]);
+          }
+        }
+
+        if (current) {
+          for (let row = 0; row < current.cells.length; row += 1) {
+            for (let col = 0; col < current.cells[row].length; col += 1) {
+              if (current.cells[row][col] && current.y + row >= 0) {
+                drawCell(boardContext, current.x + col, current.y + row, CELL, current.color);
+              }
+            }
+          }
+        }
+      }
+
+      function drawNext() {
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const size = 112;
+        if (nextCanvas.width !== size * dpr || nextCanvas.height !== size * dpr) {
+          nextCanvas.width = size * dpr;
+          nextCanvas.height = size * dpr;
+        }
+        nextContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+        nextContext.clearRect(0, 0, size, size);
+        nextContext.fillStyle = "#091118";
+        nextContext.fillRect(0, 0, size, size);
+        if (!nextType) return;
+        const cells = SHAPES[nextType].cells;
+        const cellSize = 21;
+        const width = cells[0].length * cellSize;
+        const height = cells.length * cellSize;
+        const offsetX = (size - width) / 2;
+        const offsetY = (size - height) / 2;
+        for (let row = 0; row < cells.length; row += 1) {
+          for (let col = 0; col < cells[row].length; col += 1) {
+            if (!cells[row][col]) continue;
+            const x = offsetX + col * cellSize;
+            const y = offsetY + row * cellSize;
+            nextContext.fillStyle = SHAPES[nextType].color;
+            nextContext.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+            nextContext.fillStyle = "rgba(255,255,255,.2)";
+            nextContext.fillRect(x + 3, y + 3, cellSize - 6, 2);
+            nextContext.strokeStyle = "rgba(3,12,17,.42)";
+            nextContext.strokeRect(x + 1.5, y + 1.5, cellSize - 3, cellSize - 3);
+          }
+        }
+      }
+
+      function handleKeydown(event) {
+        const key = event.key.toLowerCase();
+        if (["arrowleft", "arrowright", "arrowdown", "arrowup", " "].includes(key)) event.preventDefault();
+
+        if (key === "enter") {
+          if (state === "ready" || state === "over") startGame();
+          else if (state === "paused") setState("running");
+          return;
+        }
+        if (key === "r") {
+          startGame();
+          return;
+        }
+        if (key === "p") {
+          togglePause();
+          return;
+        }
+        if (state !== "running") return;
+
+        if (key === "arrowleft") move(-1);
+        else if (key === "arrowright") move(1);
+        else if (key === "arrowdown") stepDown(true);
+        else if (key === "arrowup" || key === "x") rotate(1);
+        else if (key === "z") rotate(-1);
+        else if (key === " ") hardDrop();
+      }
+
+      startButton.addEventListener("click", () => {
+        if (state === "paused") setState("running");
+        else if (state !== "running") startGame();
+      });
+      pauseButton.addEventListener("click", togglePause);
+      resetButton.addEventListener("click", startGame);
+      musicButtons.forEach((button) => button.addEventListener("click", toggleMusic));
+      touchDock.addEventListener("pointerdown", handleTouchPointerDown);
+      touchDock.addEventListener("pointerup", stopTouchRepeat);
+      touchDock.addEventListener("pointercancel", stopTouchRepeat);
+      touchDock.addEventListener("lostpointercapture", stopTouchRepeat);
+      touchDock.addEventListener("click", handleTouchClick);
+      overlayButton.addEventListener("click", () => {
+        if (state === "paused") setState("running");
+        else startGame();
+      });
+      window.addEventListener("keydown", handleKeydown, { passive: false });
+      window.addEventListener("pointerup", stopTouchRepeat);
+      window.addEventListener("blur", stopTouchRepeat);
+      window.addEventListener("resize", draw);
+
+      updateStats();
+      syncTouchControls();
+      syncMusicButtons();
+      drawNext();
+      draw();
+    })();
+  </script>
+</body>
+</html>
