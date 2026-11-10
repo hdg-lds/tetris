@@ -12,6 +12,17 @@ uv venv .venv && uv pip install -p .venv/bin/python -r requirements-dev.txt   # 
 .venv/bin/uvicorn app.main:app --reload
 ```
 
+기본 DB는 SQLite(`backend/data/tetris.db`)입니다. MySQL(Docker Compose)을 쓰려면:
+
+```bash
+cd backend
+cp .env.example .env            # 최초 1회, 비밀번호 수정
+docker compose up -d            # MySQL 8.4 컨테이너 실행 (healthy 확인: docker compose ps)
+.venv/bin/uvicorn app.main:app --reload --env-file .env
+```
+
+자세한 내용은 `exercise2.md`를 참고하세요.
+
 브라우저에서 http://127.0.0.1:8000/ 에 접속해 이메일로 회원가입 또는 로그인한 뒤 플레이합니다. 로그인해야 게임을 시작할 수 있고, 게임이 끝날 때마다 기록이 저장됩니다. API 문서는 http://127.0.0.1:8000/docs 에 있습니다. 자세한 구축 과정은 `exercise.md`를 참고하세요.
 
 ### 백엔드 없이 실행 (오프라인 모드)
@@ -49,6 +60,7 @@ uv venv .venv && uv pip install -p .venv/bin/python -r requirements-dev.txt   # 
 - `src/tetris-core.js` — 테스트 가능한 순수 게임 로직
 - `src/api-client.js` — 백엔드 API 호출 (회원, 기록, 랭킹)
 - `tests/` — Jest 유닛 테스트 (`npm test`)
-- `backend/` — FastAPI + SQLite 백엔드와 pytest 테스트
+- `backend/` — FastAPI 백엔드(SQLite 또는 Docker Compose MySQL)와 pytest 테스트
 - `exercise.md` — 백엔드 구축·연동 실습 과정
+- `exercise2.md` — DB를 Docker Compose MySQL로 전환하는 실습 과정
 - `PLAN.md` — 구현 계획

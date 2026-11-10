@@ -190,3 +190,33 @@ festapi, sqlite 어떻게 연동하는지를 까지 포함해서 이 exercise �
 ### 결과 요약
 
 `backend/`에 FastAPI + SQLAlchemy + SQLite 백엔드를 만들었습니다. 이메일·비밀번호 회원가입/로그인(scrypt 해시, JWT), 게임마다 기록 저장, 내 기록 조회, 사용자별 최고 기록 기반 전체 랭킹 API를 제공하고 `index.html`과 `src/`를 같은 주소에서 서빙합니다. 프론트에는 `src/api-client.js`를 추가하고 `index.html`에 로그인/회원가입 모달, 로그인 전 시작 차단, 게임 종료 시 기록 저장, 전체 최고 점수·TOP 5 랭킹·내 최고 기록 표시, 백엔드가 없을 때의 오프라인 모드를 넣었습니다. `exercise.md`에 FastAPI–SQLite 연동 원리와 전체 실습 과정을, `README.md`에 실행 방법을 정리했고, `AGENTS.md` 테스트 규칙에 pytest를 추가했으며 CI에 백엔드 job을 추가했습니다. 검증: `npm test` 3개 스위트 39개 통과, `pytest` 23개 통과, 실제 uvicorn 서버에 jsdom으로 회원가입→플레이→기록 저장→랭킹 표시 흐름과 문서의 curl 명령을 확인했고, 백엔드 없는 오프라인 모드도 확인했습니다. 실제 브라우저 화면 확인은 하지 못했습니다. 커밋하지 않았습니다.
+
+## 2026-11-10 — Docker Compose MySQL 전환 실습 문서
+
+### 프롬프트 (원문)
+
+````text
+백엔드 db를 docker compose 기반의 mysql 로 변경하려고해 어떻게 해야하는지 exercise2.md에 저장해바
+````
+
+### 결과 요약
+
+SQLite에서 Docker Compose 기반 MySQL 8.4로 바꾸는 과정을 `exercise2.md`에 정리했습니다. Docker 권한 준비, `docker-compose.yml`·`.env`·테스트 DB init SQL, `pymysql`/`cryptography` 추가, `app/db.py`의 DB별 연결 옵션, `uvicorn --env-file` 실행, SQLite→MySQL 데이터 이전 스크립트, MySQL 대상 pytest, 문제 해결, 백엔드 컨테이너화 부록을 담았습니다. 문서의 코드는 프로젝트 밖 임시 사본에서 검증했습니다: 수정 코드로 pytest 23개 통과, MySQL용 DDL·랭킹 쿼리 컴파일, 이전 스크립트 동작, `docker compose config` 검사, `--env-file` 적용. 현재 사용자가 `docker` 그룹에 없어 MySQL 컨테이너 실행·접속은 검증하지 못했습니다. 프로젝트 코드는 변경하지 않았고 커밋하지 않았습니다. 변경 파일은 `exercise2.md`, `WORKFLOW.md`입니다.
+
+## 2026-11-10 — exercise2 대로 MySQL 전환 진행
+
+### 프롬프트 (원문)
+
+````text
+exercise2대로 진행해주고 푸시까지 해줘
+````
+
+### 후속 프롬프트 (원문)
+
+````text
+햇어
+````
+
+### 결과 요약
+
+`exercise2.md` 절차대로 `backend/docker-compose.yml`, `backend/.env.example`, `backend/mysql-init/01-test-db.sql`, `backend/scripts/sqlite_to_mysql.py`를 추가하고 `backend/requirements.txt`(`pymysql`, `cryptography`), `backend/app/db.py`(DB별 연결 옵션), `backend/tests/test_api.py`(`TEST_DATABASE_URL` 지원)를 수정했습니다. 무작위 비밀번호로 `backend/.env`(git 제외)를 만들고, 사용자가 `docker` 그룹 권한을 추가한 뒤 MySQL 8.4.13 컨테이너를 실행했습니다. 기존 SQLite 데이터(회원 1명, 기록 2건)를 백업 후 MySQL로 옮겼고, 서버를 `--env-file .env`로 MySQL에 연결해 가입·기록 저장·랭킹을 확인한 뒤 확인용 계정은 삭제했습니다. 컨테이너 재시작 후 데이터 유지와 서버 자동 재연결도 확인했습니다. `README.md`와 `exercise2.md`의 검증 내용을 갱신했습니다. 검증: `npm test` 39개 통과, `pytest` SQLite 23개·MySQL 23개 통과.

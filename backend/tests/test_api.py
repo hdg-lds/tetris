@@ -1,14 +1,21 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 
+from app.db import Base
 from app.main import create_app, mask_email
 
 
 @pytest.fixture()
 def client(tmp_path):
-    app = create_app(database_url=f"sqlite:///{tmp_path / 'test.db'}", secret_key="test-secret-key-for-pytest-0123456789abcdef")
+    # TEST_DATABASE_URL 이 있으면 그 DB(MySQL 테스트 DB), 없으면 테스트마다 새 SQLite 파일
+    url = os.environ.get("TEST_DATABASE_URL") or f"sqlite:///{tmp_path / 'test.db'}"
+    app = create_app(database_url=url, secret_key="test-secret-key-for-pytest-0123456789abcdef")
     with TestClient(app) as c:
         yield c
+    Base.metadata.drop_all(app.state.engine)   # 다음 테스트를 위해 테이블 비우기
+    app.state.engine.dispose()
 
 
 def signup(client, email="player@example.com", password="password123"):
