@@ -135,11 +135,17 @@
 
     .game-layout {
       display: grid;
-      grid-template-columns: minmax(275px, 390px) minmax(280px, 1fr);
+      grid-template-columns: 200px auto 240px;
+      grid-template-areas: "left board right";
+      justify-content: center;
       align-items: start;
       gap: 20px;
-      scroll-margin-top: 16px;
+      scroll-margin-top: 12px;
     }
+
+    .board-card { grid-area: board; }
+    .side-left { grid-area: left; }
+    .side-right { grid-area: right; }
 
     .board-card, .side-card {
       border: 1px solid var(--line);
@@ -164,7 +170,8 @@
 
     .board-wrap {
       position: relative;
-      width: min(100%, 330px);
+      /* 보드 높이(가로×2)가 화면 높이 안에 들어오도록 크기 조절 */
+      width: min(100%, clamp(220px, calc((100vh - 140px) / 2), 330px));
       margin: 0 auto;
       overflow: hidden;
       border: 1px solid rgba(98, 244, 228, .22);
@@ -221,10 +228,10 @@
     .side-column { display: grid; gap: 14px; }
     .side-card { padding: 17px; }
 
-    .stats-grid { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 9px; }
+    .stats-grid { display: grid; grid-template-columns: 1fr; gap: 9px; }
 
     .stat {
-      min-height: 83px;
+      min-height: 64px;
       padding: 13px 12px 11px;
       border: 1px solid rgba(143, 174, 181, .13);
       border-radius: 9px;
@@ -238,16 +245,16 @@
     .side-heading { display: flex; align-items: center; justify-content: space-between; margin: 0 0 14px; color: #e4eded; font-size: 12px; font-weight: 650; }
     .side-heading small { color: #72848c; font: 9px/1 var(--mono); letter-spacing: .12em; }
 
-    .next-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .next-row { display: flex; flex-direction: column; align-items: center; gap: 10px; }
     #next-piece { display: block; width: 92px; height: 92px; border: 1px solid rgba(143, 174, 181, .13); border-radius: 8px; background: #091118; }
-    .next-note { max-width: 145px; margin: 0; color: #91a2a9; font-size: 11px; line-height: 1.7; }
+    .next-note { margin: 0; color: #91a2a9; font-size: 11px; line-height: 1.7; text-align: center; }
     .next-note b { color: var(--cyan); font: 10px/1.5 var(--mono); letter-spacing: .05em; }
 
     .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
     .action-row .button:first-child { grid-column: 1 / -1; }
     .action-row .music-toggle { grid-column: 1 / -1; width: 100%; }
 
-    .keys { display: grid; grid-template-columns: 1fr 1fr; gap: 11px 15px; margin: 0; }
+    .keys { display: grid; grid-template-columns: 1fr; gap: 9px; margin: 0; }
     .key-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #98a8ad; font-size: 10px; }
     kbd {
       display: inline-flex;
@@ -275,6 +282,13 @@
     .footnote { margin: 17px 2px 0; color: #66767e; font: 9px/1.7 var(--mono); text-align: center; letter-spacing: .02em; }
     .touch-dock { display: none; }
 
+    @media (max-width: 920px) and (min-width: 721px) and (pointer: fine) {
+      .game-layout {
+        grid-template-columns: auto 230px;
+        grid-template-areas: "board left" "board right";
+      }
+    }
+
     @media (max-width: 720px), (pointer: coarse) {
       .page { width: min(100% - 28px, 480px); padding-top: 18px; padding-bottom: 150px; }
       .intro { padding: 23px 2px 17px; }
@@ -283,11 +297,25 @@
       .how-steps { grid-template-columns: 1fr; gap: 9px; }
       .how-step { align-items: center; }
       .how-step p { font-size: 10px; }
-      .game-layout { grid-template-columns: minmax(0, 1fr); gap: 13px; }
-      .board-card { padding: 13px; }
-      .board-wrap { width: min(100%, 330px); }
-      .side-column { grid-template-columns: 1fr 1fr; align-items: start; }
-      .stats-card, .actions-card { grid-column: 1 / -1; }
+      .game-layout {
+        grid-template-columns: minmax(0, 1fr) 96px;
+        grid-template-areas: "board left" "right right";
+        justify-content: stretch;
+        gap: 10px;
+      }
+      .board-card { padding: 10px; }
+      .board-wrap { width: min(100%, clamp(200px, calc((100vh - 250px) / 2), 330px)); }
+      .board-footer { display: none; }
+      .side-left { gap: 10px; }
+      .side-left .side-card { padding: 9px; }
+      .side-left .stats-grid { gap: 6px; }
+      .side-left .stat { min-height: 0; padding: 8px 7px; }
+      .side-left .stat-value { margin-top: 6px; font-size: 17px; }
+      .side-left .side-heading { justify-content: center; margin-bottom: 8px; }
+      .side-left .side-heading small, .next-note { display: none; }
+      #next-piece { width: 72px; height: 72px; }
+      .side-right { grid-template-columns: 1fr 1fr; align-items: start; }
+      .keys { grid-template-columns: 1fr 1fr; gap: 11px 15px; }
 
       .touch-dock {
         position: fixed;
@@ -341,12 +369,10 @@
       .brand-mark { width: 34px; height: 34px; }
       .intro-copy { max-width: 330px; }
       .intro-actions { align-items: flex-start; flex-direction: column; gap: 10px; }
-      .board-card { padding: 10px; }
+      .board-card { padding: 8px; }
       .side-card { padding: 13px; }
-      .stats-grid { gap: 6px; }
-      .stat { min-height: 73px; padding: 11px 8px 9px; }
       .stat-label { font-size: 8px; }
-      .stat-value { font-size: 20px; }
+      .side-right { grid-template-columns: 1fr; }
       .keys { gap: 10px 8px; }
       .key-item { font-size: 9px; }
       .touch-moves, .touch-actions { gap: 5px; }
@@ -413,7 +439,7 @@
         <div class="board-footer"><span>MODE <strong>ENDLESS</strong></span><span>OBJECTIVE <strong>CLEAR LINES</strong></span></div>
       </section>
 
-      <div class="side-column">
+      <div class="side-column side-left">
         <section class="side-card stats-card" aria-label="게임 점수">
           <div class="stats-grid">
             <div class="stat"><span class="stat-label">Score</span><output id="score" class="stat-value" aria-live="polite">000000</output></div>
@@ -429,7 +455,9 @@
             <p class="next-note">다음에 내려올 블록을 확인하고<br><b>미리 자리를 준비하세요.</b></p>
           </div>
         </section>
+      </div>
 
+      <div class="side-column side-right">
         <section class="side-card actions-card" aria-label="게임 조작">
           <h2 class="side-heading"><span>게임 조작</span><small>KEYBOARD</small></h2>
           <dl class="keys">
@@ -842,6 +870,16 @@
         updateStats();
         spawnPiece();
         setState("running");
+        scrollGameIntoView();
+      }
+
+      function scrollGameIntoView() {
+        const section = document.getElementById("game");
+        if (!section || typeof section.scrollIntoView !== "function") return;
+        const rect = section.getBoundingClientRect();
+        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+          section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
 
       function endGame() {

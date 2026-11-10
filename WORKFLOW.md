@@ -121,3 +121,43 @@ README.md도 만드는데 그 안에 이 프로젝트를 어떻게 실행하고 
 ### 결과 요약
 
 `README.md`에서 휴대폰 접속을 위한 로컬 서버·IP 주소·WSL 네트워크 안내를 제거했습니다. 모바일 게임 조작 설명은 유지했습니다. 문서 변경이므로 테스트는 실행하지 않았으며, 파일 내용을 확인했습니다. 변경 파일은 `README.md`, `WORKFLOW.md`입니다.
+
+## 2026-11-10 — Jest 유닛 테스트 도입
+
+### 프롬프트 (원문)
+
+````text
+JEST.md 의 내용중에 package.json ㅎ수정 전까지 작업했으니 나머지 작업을 진행해줘
+````
+
+### 후속 프롬프트 (원문)
+
+````text
+push 해줘
+````
+
+### 결과 요약
+
+게임의 순수 로직(보드 생성, 충돌, 회전, 줄 삭제, 점수·레벨·낙하 속도)을 `src/tetris-core.js`로 분리하고 `index.html`이 이를 사용하도록 바꿨습니다. `package.json`에 `test`, `test:watch`, `test:coverage` 스크립트를, `.gitignore`에 `node_modules/`, `coverage/`를 추가했습니다. `tests/tetris-core.test.js`, `tests/dom.test.js`와 push마다 테스트를 실행하는 `.github/workflows/test.yml`을 추가했습니다. `npm test` 결과 2개 스위트 24개 테스트가 통과했고, jsdom으로 페이지 전체를 실행해 시작·하드 드롭이 오류 없이 동작함을 확인했습니다. 커밋 `3d0b633`으로 push했습니다. 변경 파일은 `index.html`, `src/tetris-core.js`, `tests/`, `package.json`, `package-lock.json`, `.gitignore`, `.github/workflows/test.yml`, `JEST.md`입니다.
+
+## 2026-11-10 — 좌우 배치 레이아웃, 레벨별 속도 증가, 테스트 필수 규칙
+
+### 프롬프트 (원문)
+
+````text
+플레이시 인터페이스가 아래쪽으로 너무 긴데 이걸 좌우로 배치해서 한 화면에 보일 수 있게 해줘.
+````
+
+### 후속 프롬프트 (원문)
+
+````text
+레벨이 오름녀 속도가 점점빨라지게 수정해줘 앞으로는 수정시 유닛테스트를 반드시 실행하고 통과했을때만 작업이 완료됭도록 agent.md 에 반영해줘
+````
+
+````text
+~/work/tetris에 변경내용을 반영하고 commit & push 하자
+````
+
+### 결과 요약
+
+`index.html`의 게임 영역을 데스크톱에서는 3단(왼쪽 점수·다음 블록 / 가운데 보드 / 오른쪽 조작법·버튼), 중간 폭에서는 보드 + 오른쪽 사이드, 모바일에서는 보드 오른쪽에 점수·다음 블록을 두는 구조로 바꾸고, 보드 크기를 화면 높이에 맞췄습니다. 게임을 시작하면 게임 영역이 화면 밖에 있을 때 자동으로 스크롤합니다. `src/tetris-core.js`의 `gravityDelay`를 레벨마다 낙하 간격이 15%씩 줄어드는 방식(800ms → 최소 80ms)으로 바꾸고 테스트를 갱신했습니다. `AGENTS.md`에 코드 변경 시 `npm test` 통과를 완료 조건으로 하는 규칙을 추가했습니다. `npm test` 결과 2개 스위트 28개 테스트가 통과했고, jsdom 스모크 테스트에서 오류가 없었습니다. 실제 브라우저 화면 확인은 헤드리스 브라우저 실행에 필요한 시스템 라이브러리가 없어 하지 못했습니다. 변경 파일은 `index.html`, `src/tetris-core.js`, `tests/tetris-core.test.js`, `AGENTS.md`, `WORKFLOW.md`입니다.

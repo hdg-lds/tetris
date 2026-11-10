@@ -1,6 +1,6 @@
 const {
   COLS, ROWS, emptyBoard, collides, rotateMatrix,
-  clearRows, lineScore, levelForLines, gravityDelay,
+  clearRows, lineScore, levelForLines, gravityDelay, MIN_DELAY,
 } = require("../src/tetris-core");
 
 const O = [[1, 1], [1, 1]];
@@ -116,9 +116,32 @@ describe("점수/레벨/속도", () => {
     expect(levelForLines(25)).toBe(3);
   });
 
-  test("낙하 간격은 레벨이 오를수록 줄고 100ms 미만으로 내려가지 않는다", () => {
+  test("레벨 1의 낙하 간격은 800ms", () => {
     expect(gravityDelay(1)).toBe(800);
-    expect(gravityDelay(2)).toBe(740);
-    expect(gravityDelay(99)).toBe(100);
+  });
+
+  test("레벨이 오를 때마다 낙하 간격이 15%씩 짧아진다", () => {
+    expect(gravityDelay(2)).toBe(680);
+    expect(gravityDelay(3)).toBe(578);
+    expect(gravityDelay(5)).toBe(418);
+    expect(gravityDelay(10)).toBe(185);
+  });
+
+  test("최고 속도에 도달할 때까지 레벨마다 계속 빨라진다", () => {
+    for (let level = 1; gravityDelay(level + 1) > MIN_DELAY; level += 1) {
+      expect(gravityDelay(level + 1)).toBeLessThan(gravityDelay(level));
+    }
+  });
+
+  test("낙하 간격은 최소값 아래로 내려가지 않는다", () => {
+    expect(gravityDelay(15)).toBe(82);
+    expect(gravityDelay(16)).toBe(MIN_DELAY);
+    expect(gravityDelay(99)).toBe(MIN_DELAY);
+  });
+
+  test("잘못된 레벨 값은 레벨 1로 취급한다", () => {
+    expect(gravityDelay(0)).toBe(800);
+    expect(gravityDelay(-3)).toBe(800);
+    expect(gravityDelay(NaN)).toBe(800);
   });
 });

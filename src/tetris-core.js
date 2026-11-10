@@ -54,11 +54,17 @@
     return Math.floor(lines / 10) + 1;
   }
 
+  const BASE_DELAY = 800;     // 레벨 1 낙하 간격(ms)
+  const SPEED_FACTOR = 0.85;  // 레벨이 오를 때마다 낙하 간격이 15%씩 짧아짐
+  const MIN_DELAY = 80;       // 최고 속도
+
+  // 레벨이 오를수록 블록이 점점 빨리 떨어지도록 낙하 간격(ms)을 계산
   function gravityDelay(level) {
-    return Math.max(100, 800 - (level - 1) * 60);
+    const safeLevel = Math.max(1, Math.floor(level) || 1);
+    return Math.max(MIN_DELAY, Math.round(BASE_DELAY * SPEED_FACTOR ** (safeLevel - 1)));
   }
 
-  const api = { COLS, ROWS, emptyBoard, collides, rotateMatrix, clearRows, lineScore, levelForLines, gravityDelay };
+  const api = { COLS, ROWS, MIN_DELAY, emptyBoard, collides, rotateMatrix, clearRows, lineScore, levelForLines, gravityDelay };
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;        // Node / Jest
