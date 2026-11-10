@@ -11,14 +11,17 @@
 
 ## Unit tests (required)
 
-- After any change to code (`index.html`, `src/`, `tests/`, or test/build configuration), run the unit tests with `npm test` before finishing the task.
-- A task is complete only when every test passes. If any test fails, fix the cause (or update the test if the behavior change was intended) and run `npm test` again until it passes. Never report the task as done while tests are failing, skipped, or not run.
-- When game logic changes, add or update the matching tests in `tests/`. Keep pure game logic in `src/tetris-core.js` so it stays testable.
+- After any change to code, run the unit tests before finishing the task:
+  - Frontend (`index.html`, `src/`, `tests/`, `package.json`): `npm test`
+  - Backend (`backend/`): `cd backend && .venv/bin/python -m pytest -q`
+  - If a change touches both, or the frontend–backend API contract (`src/api-client.js`, `backend/app/`), run both.
+- A task is complete only when every test passes. If any test fails, fix the cause (or update the test if the behavior change was intended) and run the tests again until they pass. Never report the task as done while tests are failing, skipped, or not run.
+- When game logic changes, add or update the matching tests in `tests/`. Keep pure game logic in `src/tetris-core.js` and API calls in `src/api-client.js` so they stay testable. When an API endpoint changes, update `backend/tests/`.
 - If the tests cannot be run (for example, Node.js is unavailable), stop and tell the user instead of declaring the task complete.
-- Record the test command and its result (number of tests passed) in the `WORKFLOW.md` entry and in the final response.
+- Record the test command and its result (number of tests passed for each suite) in the `WORKFLOW.md` entry and in the final response.
 
 ## Git workflow
 
 - Never rebase. Do not use `git rebase`, `git pull --rebase`, or `git config pull.rebase true`.
 - Integrate remote changes with merge only: `git pull --no-rebase` (or `git fetch` then `git merge origin/<branch>`).
-- If a push is rejected because the remote has new commits, run `git pull --no-rebase`, resolve any conflicts, run `npm test`, then push again.
+- If a push is rejected because the remote has new commits, run `git pull --no-rebase`, resolve any conflicts, run the tests, then push again.

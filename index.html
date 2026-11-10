@@ -279,6 +279,40 @@
     .status-line[data-state="paused"] .status-light { background: #ffc960; box-shadow: 0 0 8px #ffc960; }
     .status-line[data-state="over"] .status-light { background: var(--pink); box-shadow: 0 0 8px var(--pink); }
 
+    /* ---------- 회원 / 랭킹 ---------- */
+    .user-bar { display: flex; align-items: center; gap: 8px; color: #b9c8cc; font: 10px/1 var(--mono); }
+    .user-bar[hidden] { display: none; }
+    .user-email { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .link-button { padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: #b9c8cc; cursor: pointer; font: 10px/1 var(--mono); }
+    .link-button:hover { color: var(--cyan); border-color: rgba(98, 244, 228, .35); }
+
+    .top-score { margin-top: 9px; padding: 11px 12px; border: 1px solid rgba(215, 255, 112, .22); border-radius: 9px; background: rgba(215, 255, 112, .05); }
+    .top-score .stat-value { color: var(--lime); font-size: 20px; margin-top: 7px; }
+    .top-player, .my-best { display: block; margin-top: 6px; overflow: hidden; color: #8e9fa6; font: 9px/1.4 var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+
+    .ranking { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; counter-reset: rank; }
+    .ranking li { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: center; color: #a9b8bd; font: 10px/1.3 var(--mono); }
+    .ranking li::before { counter-increment: rank; content: counter(rank); color: var(--cyan); }
+    .ranking li:first-child { color: var(--lime); }
+    .ranking .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ranking .empty { display: block; color: #6f8189; }
+    .ranking .empty::before { content: none; }
+    .save-status { min-height: 1.4em; margin: -8px 0 14px; color: var(--cyan); font: 10px/1.4 var(--mono); }
+
+    .auth-modal { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 16px; background: rgba(4, 9, 13, .82); backdrop-filter: blur(6px); }
+    .auth-modal[hidden] { display: none; }
+    .auth-card { width: min(100%, 360px); padding: 24px 22px; border: 1px solid rgba(98, 244, 228, .25); border-radius: 15px; background: linear-gradient(145deg, #111b24, #0b1219); box-shadow: 0 30px 80px rgba(0, 0, 0, .45); }
+    .auth-card h2 { margin: 6px 0 4px; font-size: 22px; letter-spacing: -.03em; }
+    .auth-sub { margin: 0 0 18px; color: #8e9fa6; font-size: 12px; line-height: 1.6; }
+    .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+    .auth-tab { min-height: 34px; border: 1px solid var(--line); border-radius: 7px; background: #111a21; color: #8b9aa1; cursor: pointer; font: 700 11px/1 var(--mono); }
+    .auth-tab[aria-selected="true"] { border-color: rgba(98, 244, 228, .5); background: rgba(98, 244, 228, .1); color: var(--cyan); }
+    .auth-field { display: grid; gap: 6px; margin-bottom: 12px; color: #a6b5ba; font: 10px/1 var(--mono); letter-spacing: .08em; }
+    .auth-field input { min-height: 40px; padding: 0 12px; border: 1px solid rgba(141, 175, 184, .25); border-radius: 7px; background: #071016; color: var(--ink); font: 14px/1 Inter, system-ui, sans-serif; letter-spacing: 0; }
+    .auth-field input:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
+    .auth-error { min-height: 1.4em; margin: 0 0 10px; color: var(--pink); font-size: 12px; line-height: 1.4; }
+    .auth-card .button { width: 100%; }
+
     .footnote { margin: 17px 2px 0; color: #66767e; font: 9px/1.7 var(--mono); text-align: center; letter-spacing: .02em; }
     .touch-dock { display: none; }
 
@@ -360,6 +394,12 @@
       .touch-key.music-toggle { min-height: 43px; padding: 0 4px; font-size: 9px; }
     }
 
+    @media (max-width: 720px), (pointer: coarse) {
+      .user-email { max-width: 110px; }
+      .top-score { padding: 8px 7px; }
+      .top-score .stat-value { font-size: 15px; }
+    }
+
     @media (max-width: 420px) {
       .page { width: min(100% - 20px, 390px); }
       .topbar { padding-bottom: 16px; }
@@ -395,6 +435,10 @@
         </div>
       </div>
       <div class="topbar-actions">
+        <div id="user-bar" class="user-bar" hidden>
+          <span id="user-email" class="user-email"></span>
+          <button id="logout-button" class="link-button" type="button">로그아웃</button>
+        </div>
         <div class="live-tag"><span class="live-dot" aria-hidden="true"></span> SINGLE PLAYER</div>
         <button class="music-toggle" type="button" data-music-toggle aria-pressed="true" aria-label="코로베이니카 BGM 끄기">
           <span aria-hidden="true">♫</span><span data-music-label>BGM ON</span>
@@ -433,6 +477,7 @@
             <p id="overlay-kicker" class="overlay-kicker">READY PLAYER 01</p>
             <h2 id="overlay-title">시작할까요?</h2>
             <p id="overlay-copy" class="overlay-copy">Enter 키를 누르거나 아래 버튼으로 게임을 시작하세요.</p>
+            <p id="save-status" class="save-status" aria-live="polite"></p>
             <button id="overlay-button" class="button" type="button">게임 시작</button>
           </div>
         </div>
@@ -446,6 +491,12 @@
             <div class="stat"><span class="stat-label">Level</span><output id="level" class="stat-value">01</output></div>
             <div class="stat"><span class="stat-label">Lines</span><output id="lines" class="stat-value">00</output></div>
           </div>
+          <div class="top-score" aria-live="polite">
+            <span class="stat-label">전체 최고 점수</span>
+            <output id="top-score" class="stat-value">------</output>
+            <span id="top-player" class="top-player">기록 불러오는 중…</span>
+            <span id="my-best" class="my-best"></span>
+          </div>
         </section>
 
         <section class="side-card" aria-labelledby="next-title">
@@ -458,6 +509,11 @@
       </div>
 
       <div class="side-column side-right">
+        <section class="side-card" aria-labelledby="ranking-title">
+          <h2 id="ranking-title" class="side-heading"><span>전체 랭킹</span><small>TOP 5</small></h2>
+          <ol id="ranking" class="ranking"><li class="empty">기록 불러오는 중…</li></ol>
+        </section>
+
         <section class="side-card actions-card" aria-label="게임 조작">
           <h2 class="side-heading"><span>게임 조작</span><small>KEYBOARD</small></h2>
           <dl class="keys">
@@ -487,6 +543,22 @@
     <p class="footnote">키보드: ← → 이동 · ↑ / X 회전 · Z 반대 회전 · ↓ 천천히 낙하 · SPACE 즉시 낙하 · P 일시정지 · R 새 게임<br>모바일: 화면 아래 터치 버튼 사용</p>
   </main>
 
+  <div id="auth-modal" class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title" hidden>
+    <form id="auth-form" class="auth-card" novalidate>
+      <p class="eyebrow">PLAYER LOGIN</p>
+      <h2 id="auth-title">로그인하고 플레이</h2>
+      <p class="auth-sub">이메일로 가입한 회원만 플레이할 수 있어요. 게임마다 기록이 저장되고 전체 랭킹에 올라갑니다.</p>
+      <div class="auth-tabs" role="tablist">
+        <button id="tab-login" class="auth-tab" type="button" role="tab" aria-selected="true" data-mode="login">로그인</button>
+        <button id="tab-signup" class="auth-tab" type="button" role="tab" aria-selected="false" data-mode="signup">회원가입</button>
+      </div>
+      <label class="auth-field">EMAIL<input id="auth-email" type="email" autocomplete="email" required></label>
+      <label class="auth-field">PASSWORD<input id="auth-password" type="password" autocomplete="current-password" minlength="8" required></label>
+      <p id="auth-error" class="auth-error" role="alert"></p>
+      <button id="auth-submit" class="button" type="submit">로그인</button>
+    </form>
+  </div>
+
   <div id="touch-dock" class="touch-dock" aria-label="모바일 터치 조작">
     <div class="touch-moves">
       <button class="touch-key" type="button" data-touch="rotate-left" aria-label="반시계 방향 회전" title="반시계 방향 회전">↶</button>
@@ -506,6 +578,7 @@
   </div>
 
   <script src="src/tetris-core.js"></script>
+  <script src="src/api-client.js"></script>
   <script>
     (() => {
       "use strict";
@@ -857,7 +930,17 @@
         draw();
       }
 
+      // 백엔드가 있을 때 로그인하지 않았으면 시작하지 않음 (아래 회원 스크립트가 data-auth 설정)
+      function canPlay() {
+        if (document.body.dataset.auth === "required") {
+          document.dispatchEvent(new CustomEvent("tetris:login-required"));
+          return false;
+        }
+        return true;
+      }
+
       function startGame() {
+        if (!canPlay()) return;
         stopGravity();
         musicIndex = 0;
         board = emptyBoard();
@@ -885,6 +968,7 @@
       function endGame() {
         current = null;
         setState("over");
+        document.dispatchEvent(new CustomEvent("tetris:gameover", { detail: { score, level, lines } }));
       }
 
       function togglePause() {
@@ -1035,6 +1119,9 @@
       }
 
       function handleKeydown(event) {
+        // 로그인 입력창에 타이핑할 때는 게임 단축키(R, P, Enter 등)를 무시
+        if (event.target.closest && event.target.closest("input, textarea, select, .auth-modal")) return;
+        if (document.body.dataset.auth === "required" && state !== "running") return;
         const key = event.key.toLowerCase();
         if (["arrowleft", "arrowright", "arrowdown", "arrowup", " "].includes(key)) event.preventDefault();
 
@@ -1087,6 +1174,173 @@
       syncMusicButtons();
       drawNext();
       draw();
+    })();
+  </script>
+  <script>
+    (() => {
+      "use strict";
+
+      const api = window.TetrisApi.createApiClient({ storage: window.localStorage });
+      const $ = (id) => document.getElementById(id);
+      const modal = $("auth-modal");
+      const form = $("auth-form");
+      const emailInput = $("auth-email");
+      const passwordInput = $("auth-password");
+      const errorText = $("auth-error");
+      const submitButton = $("auth-submit");
+      const saveStatus = $("save-status");
+      let mode = "login";
+
+      const pad = (n) => String(n).padStart(6, "0");
+
+      function setAuthState(value) {
+        document.body.dataset.auth = value;    // "ok" | "required" | "offline"
+      }
+
+      function setMode(next) {
+        mode = next;
+        document.querySelectorAll(".auth-tab").forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.mode === next)));
+        $("auth-title").textContent = next === "login" ? "로그인하고 플레이" : "이메일로 회원가입";
+        submitButton.textContent = next === "login" ? "로그인" : "가입하고 시작";
+        passwordInput.autocomplete = next === "login" ? "current-password" : "new-password";
+        errorText.textContent = "";
+      }
+
+      function openLogin() {
+        modal.hidden = false;
+        window.setTimeout(() => emailInput.focus(), 0);
+      }
+
+      function showUser(user) {
+        $("user-bar").hidden = !user;
+        $("user-email").textContent = user ? user.email : "";
+      }
+
+      async function refreshBoards() {
+        const ranking = $("ranking");
+        try {
+          const top = await api.leaderboard(5);
+          ranking.innerHTML = "";
+          if (top.length === 0) {
+            ranking.innerHTML = '<li class="empty">아직 기록이 없어요. 첫 기록에 도전하세요!</li>';
+            $("top-score").textContent = "------";
+            $("top-player").textContent = "첫 기록의 주인공이 되어 보세요";
+          } else {
+            top.forEach((entry) => {
+              const li = document.createElement("li");
+              const who = document.createElement("span");
+              who.className = "who";
+              who.textContent = entry.player;
+              const points = document.createElement("span");
+              points.textContent = pad(entry.score);
+              li.append(who, points);
+              ranking.append(li);
+            });
+            $("top-score").textContent = pad(top[0].score);
+            $("top-player").textContent = `${top[0].player} · LV ${top[0].level}`;
+          }
+        } catch (e) {
+          ranking.innerHTML = '<li class="empty">랭킹을 불러오지 못했어요.</li>';
+        }
+
+        if (!api.isLoggedIn()) {
+          $("my-best").textContent = "";
+          return;
+        }
+        try {
+          const mine = await api.myScores(5);
+          $("my-best").textContent = mine.best
+            ? `내 최고 ${pad(mine.best.score)} · ${mine.games_played}판`
+            : "내 기록 없음";
+        } catch (e) {
+          $("my-best").textContent = "";
+        }
+      }
+
+      async function onLoggedIn(user) {
+        showUser(user);
+        setAuthState("ok");
+        modal.hidden = true;
+        form.reset();
+        await refreshBoards();
+      }
+
+      function onLoggedOut() {
+        api.logout();
+        showUser(null);
+        setAuthState("required");
+        refreshBoards();
+        openLogin();
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        if (!email || !password) {
+          errorText.textContent = "이메일과 비밀번호를 입력하세요.";
+          return;
+        }
+        submitButton.disabled = true;
+        errorText.textContent = "";
+        try {
+          const user = mode === "login" ? await api.login(email, password) : await api.signup(email, password);
+          await onLoggedIn(user);
+        } catch (e) {
+          errorText.textContent = e.status === 401 && mode === "login"
+            ? "이메일 또는 비밀번호가 올바르지 않습니다. 처음이라면 회원가입을 해 주세요."
+            : e.message || "서버에 연결할 수 없습니다.";
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+
+      document.querySelectorAll(".auth-tab").forEach((tab) => tab.addEventListener("click", () => setMode(tab.dataset.mode)));
+      $("logout-button").addEventListener("click", onLoggedOut);
+      document.addEventListener("tetris:login-required", openLogin);
+
+      // 게임이 끝날 때마다 기록 저장 후 랭킹 갱신
+      document.addEventListener("tetris:gameover", async (event) => {
+        if (document.body.dataset.auth !== "ok") return;
+        saveStatus.textContent = "기록 저장 중…";
+        try {
+          await api.saveScore(event.detail);
+          saveStatus.textContent = "기록이 저장되었어요.";
+          await refreshBoards();
+        } catch (e) {
+          if (e.status === 401) {
+            saveStatus.textContent = "로그인이 만료되어 기록을 저장하지 못했어요.";
+            onLoggedOut();
+          } else {
+            saveStatus.textContent = `기록 저장 실패: ${e.message}`;
+          }
+        }
+      });
+      document.addEventListener("keydown", () => { if (saveStatus.textContent && document.body.dataset.auth === "ok") saveStatus.textContent = ""; }, true);
+
+      async function init() {
+        if (!(await api.isAvailable())) {
+          // GitHub Pages / 파일로 직접 연 경우: 백엔드 없이 게임만
+          setAuthState("offline");
+          $("top-score").textContent = "------";
+          $("top-player").textContent = "오프라인 모드 · 기록 저장 안 됨";
+          $("ranking").innerHTML = '<li class="empty">백엔드 서버에 연결되지 않았어요.</li>';
+          return;
+        }
+        setAuthState("required");
+        if (api.isLoggedIn()) {
+          try {
+            await onLoggedIn(await api.me());
+            return;
+          } catch (e) {
+            api.logout();
+          }
+        }
+        await refreshBoards();
+        openLogin();
+      }
+
+      init();
     })();
   </script>
 </body>
