@@ -16,3 +16,9 @@
 - When game logic changes, add or update the matching tests in `tests/`. Keep pure game logic in `src/tetris-core.js` so it stays testable.
 - If the tests cannot be run (for example, Node.js is unavailable), stop and tell the user instead of declaring the task complete.
 - Record the test command and its result (number of tests passed) in the `WORKFLOW.md` entry and in the final response.
+
+## Git workflow
+
+- Never rebase. Do not use `git rebase`, `git pull --rebase`, or `git config pull.rebase true`.
+- Integrate remote changes with merge only: `git pull --no-rebase` (or `git fetch` then `git merge origin/<branch>`).
+- If a push is rejected because the remote has new commits, run `git pull --no-rebase`, resolve any conflicts, run `npm test`, then push again.
